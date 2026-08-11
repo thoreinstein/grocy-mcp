@@ -17,10 +17,15 @@ You: add coconut milk to the shopping list
 
 ## Install
 
+Not on PyPI yet — install from the repo:
+
 ```bash
-pip install grocy-mcp            # stdio only
-pip install 'grocy-mcp[http]'    # also serve over HTTP with OAuth
+pip install git+https://github.com/anishanilkumar/grocy-mcp          # stdio only
+pip install 'grocy-mcp[http] @ git+https://github.com/anishanilkumar/grocy-mcp'
 ```
+
+The `http` extra adds PyJWT and cryptography, needed only to verify OAuth
+bearer tokens when serving over HTTP. A stdio server needs neither.
 
 You need a Grocy API key: in Grocy, wrench icon → **Manage API keys** → add.
 
