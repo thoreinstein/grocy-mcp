@@ -50,6 +50,18 @@ def expiry_info(bbd, on=None):
     return "", f"{d:%b %Y}"
 
 
+def is_food(group_name: str, config=None) -> bool:
+    """Whether a product group holds consumables.
+
+    With no `food_categories` configured every group is food, which is right
+    for an instance that only holds a pantry. Once the list is set, anything
+    outside it — uncategorized products included — is a durable possession.
+    See PantryConfig.food_categories for why that default direction.
+    """
+    allowed = (config or get_config()).food_categories
+    return not allowed or group_name in allowed
+
+
 def _ordered(names, preferred):
     """`names` sorted by `preferred` first, then alphabetically."""
     rank = {n: i for i, n in enumerate(preferred)}
@@ -80,6 +92,7 @@ def load_items():
             barcodes.setdefault(b["product_id"], code)
 
     now = today()
+    config = get_config()
     items = []
     for entry in stock:
         p = entry["product"]
@@ -87,12 +100,14 @@ def load_items():
         bbd = entry.get("best_before_date") or ""
         cls, label = expiry_info(bbd, now)
         real_bbd = "" if bbd >= NEVER_EXPIRES else bbd
+        group = groups.get(p["product_group_id"], UNCATEGORIZED)
         items.append({
             "product_id": p["id"],
             "name": p["name"],
             "desc": (p.get("description") or "").strip(),
             "barcode": barcodes.get(p["id"], ""),
-            "group": groups.get(p["product_group_id"], UNCATEGORIZED),
+            "group": group,
+            "food": is_food(group, config),
             "location": locations.get(p["location_id"], "Other"),
             "unit": unit,
             "amount": fmt_amount(entry["amount_aggregated"], unit),
@@ -104,7 +119,6 @@ def load_items():
             "days_left": (date.fromisoformat(real_bbd) - now).days if real_bbd else None,
         })
 
-    config = get_config()
     meta = {
         "locations": locations,
         "groups": groups,

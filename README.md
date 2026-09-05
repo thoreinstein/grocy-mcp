@@ -130,6 +130,15 @@ Best-before estimates when the package date is unknown:
 "Freezer" = "Frozen items, meat, fish"
 ```
 
+`location_notes` is a fallback: a location's own `description` in Grocy wins
+where one is set, so the advice can be edited in the web UI and cannot be
+orphaned by a rename.
+
+If the instance also tracks durable possessions — tools, cables, documents —
+alongside the food, list the consumable categories under `food_categories`.
+Anything not listed counts as non-food, so a pantry view can leave the drill
+out. Unset (the default) means everything is food.
+
 See [`examples/pantry.toml`](examples/pantry.toml) for every option. Point at
 it with `GROCY_MCP_CONFIG=/path/to/pantry.toml` or `--config`.
 

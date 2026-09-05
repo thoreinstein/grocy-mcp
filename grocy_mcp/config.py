@@ -40,6 +40,19 @@ class PantryConfig:
     category_order: list[str] = field(default_factory=list)
     location_order: list[str] = field(default_factory=list)
 
+    # Which categories hold consumables. Grocy models food — stock that is
+    # bought, expires and gets used up — but an instance may also track durable
+    # possessions that never expire and are never shopped for. Listing the food
+    # categories here lets a consumer show one without the other.
+    #
+    # Empty (the default) means every category is food, which is the right
+    # behaviour for an instance that only holds a pantry. When it is set,
+    # anything *not* listed counts as non-food, including uncategorized
+    # products: a new category is far more likely to be a new kind of
+    # possession than a new kind of food, and wrongly hiding a drill from the
+    # pantry page is cheaper than wrongly showing it in "what's going off".
+    food_categories: list[str] = field(default_factory=list)
+
     # Free prose appended to get_conventions, in this order.
     unit_guidance: str = ""
     expiry_guidance: str = ""
@@ -84,7 +97,7 @@ class PantryConfig:
         for key in ("location_notes",):
             if key in kwargs and not isinstance(kwargs[key], dict):
                 raise ValueError(f"{key} must be a table of name = \"note\" pairs.")
-        for key in ("category_order", "location_order"):
+        for key in ("category_order", "location_order", "food_categories"):
             if key in kwargs and not isinstance(kwargs[key], list):
                 raise ValueError(f"{key} must be a list of names.")
         return cls(**kwargs)

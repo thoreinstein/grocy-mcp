@@ -236,12 +236,24 @@ def conventions() -> str:
     """The reference document every tool docstring points at.
 
     Locations, categories and units are read live, so a rename in the Grocy web
-    UI cannot leave this lying. The advice around them — what each location is
-    for, how long things keep, how products are named — comes from the config
-    file, and is simply absent when there isn't one.
+    UI cannot leave this lying. What each location is for is read live too, from
+    the location's own description, falling back to the config file. The rest of
+    the advice — how long things keep, how products are named — comes from the
+    config file, and is simply absent when there isn't one.
     """
     config = get_config()
-    locations = locations_by_id()
+    raw_locations = get("/objects/locations")
+    locations = {l["id"]: l["name"] for l in raw_locations}
+
+    # What a shelf is for is a property of the shelf, so it belongs on the
+    # location record in Grocy: editable from anywhere, no redeploy, and it
+    # cannot be orphaned by a rename the way a name-keyed config entry can.
+    # config.location_notes remains the fallback for instances that keep their
+    # notes there, and for locations whose description is blank.
+    descriptions = {
+        l["name"]: " ".join((l.get("description") or "").split())
+        for l in raw_locations
+    }
     groups = [g["name"] for g in get("/objects/product_groups")]
     units = sorted(u["name"] for u in get("/objects/quantity_units"))
 
@@ -254,7 +266,7 @@ def conventions() -> str:
     lines = []
     for i in ordered:
         label = f"{locations[i]} ({i})"
-        note = config.location_notes.get(locations[i], "")
+        note = descriptions.get(locations[i]) or config.location_notes.get(locations[i], "")
         lines.append(f"  {label:<{width}}{note}".rstrip())
 
     grank = {n: i for i, n in enumerate(config.category_order)}

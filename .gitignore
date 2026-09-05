@@ -8,4 +8,7 @@ build/
 .pytest_cache/
 .ruff_cache/
 .env
-pantry.toml
+# Anchored: a household's own config at the repo root. Unanchored, this also
+# matched examples/pantry.toml, which the README links to — so the example was
+# silently never committed.
+/pantry.toml

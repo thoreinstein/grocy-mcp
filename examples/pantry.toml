@@ -1,0 +1,87 @@
+# Optional configuration for grocy-mcp.
+#
+# Point at it with GROCY_MCP_CONFIG=/path/to/pantry.toml, or --config.
+# Everything here is optional; with no config file the server still works, it
+# just describes your Grocy instance without any opinions about it.
+#
+# Locations, categories and units are always read live from Grocy, so they are
+# never listed here. What goes here is the advice Grocy has no field for — the
+# things a person in the household knows and an agent otherwise has to guess.
+
+[pantry]
+
+# One or two sentences of context, shown to the agent up front.
+summary = "Household inventory for a two-person kitchen. Metric throughout."
+
+# Days ahead that expiring_soon looks by default.
+soon_days = 7
+
+# Preferred display order. Anything not listed sorts afterwards. Use the exact
+# names as they appear in Grocy.
+category_order = [
+    "Fruits & Vegetables",
+    "Dairy & Eggs",
+    "Meat & Fish",
+    "Spices & Herbs",
+    "Snacks & Sweets",
+]
+
+location_order = [
+    "Fridge",
+    "Freezer",
+    "Pantry",
+]
+
+# Which categories hold consumables. Only needed if this Grocy also tracks
+# durable possessions — tools, cables, documents — alongside the food. Anything
+# not listed here counts as non-food, uncategorized products included, so a
+# consumer can show a pantry without the drill in it.
+#
+# Leave it out entirely for an instance that only holds a pantry: unset means
+# everything is food.
+# food_categories = [
+#     "Fruits & Vegetables",
+#     "Dairy & Eggs",
+#     "Spices & Herbs",
+# ]
+
+# Free prose, appended to get_conventions in this order. Write it as
+# instructions to the agent.
+unit_guidance = """
+Spices and loose produce are tracked by weight in grams; a 100 g packet is
+amount=100, and "a teaspoon" is roughly 5. Everything else is per pack or per
+piece, usually 1 at a time.
+"""
+
+expiry_guidance = """
+Best-before estimates when the package date is unknown, counted from purchase:
+  fresh veg ~1 week          frozen items ~2 months     nuts ~9 months
+  dried herbs, drinks ~12 months
+  oils, jarred sauces ~18 months
+  ground spices ~2 years     whole spices ~3 years
+Prefer the printed date whenever the package has one.
+"""
+
+naming_guidance = """
+Product names are kept in English even where the packaging is not, so the
+inventory is easy to scan. Brand names stay as printed. Every product also
+carries a short description identifying the exact item: brand, size, variant.
+"""
+
+# What each location is actually for. This is the highest-value thing in the
+# file: it is what stops an agent putting the frozen peas on the spice shelf.
+# Keyed by location name rather than id, so it survives ids changing.
+#
+# A *fallback*: if a location has a description set in Grocy, that wins. Prefer
+# the description — it is editable from the web UI, needs no redeploy, and
+# travels with the location instead of being orphaned by a rename. This table
+# is for locations with no description, and for instances that would rather
+# keep the advice in one file.
+#
+# Must come last: everything above belongs to [pantry], and a sub-table ends
+# that section.
+[pantry.location_notes]
+"Fridge" = "Perishables: dairy, eggs, opened jars, fresh veg"
+"Freezer" = "Frozen items, meat, fish, batch-cooked portions"
+"Pantry" = "Default for anything shelf-stable"
+"Spice drawer" = "Spices in daily use"

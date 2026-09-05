@@ -91,3 +91,46 @@ def test_conventions_without_config_says_nothing_it_cannot_know(fake_grocy):
     text = conventions()
     assert "keeps" not in text
     assert "Locations" in text
+
+
+def test_location_description_beats_configured_note(fake_grocy, monkeypatch):
+    """A note on the location itself wins over one in the config file.
+
+    The config file is keyed by name, so it silently orphans on a rename; the
+    description travels with the location. Config stays as the fallback.
+    """
+    fake_grocy.locations[0]["description"] = "Perishables: dairy, eggs"
+    monkeypatch.setattr(config_module, "_config", PantryConfig(
+        location_notes={"Fridge": "Stale note from the config file",
+                        "Pantry": "Shelf-stable groceries"},
+    ))
+    text = conventions()
+    assert "Perishables: dairy, eggs" in text
+    assert "Stale note from the config file" not in text
+    # A location with no description still falls back to the config file.
+    assert "Shelf-stable groceries" in text
+
+
+def test_blank_location_description_falls_back(fake_grocy, monkeypatch):
+    fake_grocy.locations[0]["description"] = "   \n  "
+    monkeypatch.setattr(config_module, "_config", PantryConfig(
+        location_notes={"Fridge": "Cold things"},
+    ))
+    assert "Cold things" in conventions()
+
+
+def test_multiline_location_description_is_collapsed(fake_grocy):
+    """Descriptions are free text in the web UI; the table needs one line."""
+    fake_grocy.locations[0]["description"] = "Perishables:\n  dairy,   eggs"
+    text = conventions()
+    assert "Perishables: dairy, eggs" in text
+
+
+def test_food_categories_rejects_a_non_list():
+    with pytest.raises(ValueError, match="food_categories"):
+        PantryConfig.from_dict({"pantry": {"food_categories": "Snacks"}})
+
+
+def test_food_categories_round_trips():
+    cfg = PantryConfig.from_dict({"pantry": {"food_categories": ["Snacks"]}})
+    assert cfg.food_categories == ["Snacks"]

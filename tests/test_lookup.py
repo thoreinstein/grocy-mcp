@@ -7,8 +7,10 @@ weeks.
 
 import pytest
 
+from grocy_mcp import config as config_module
 from grocy_mcp import lookup
-from grocy_mcp.stock import fmt_amount
+from grocy_mcp.config import PantryConfig
+from grocy_mcp.stock import UNCATEGORIZED, fmt_amount, is_food, load_items
 
 
 def test_resolves_exact_name(fake_grocy):
@@ -115,3 +117,30 @@ def test_fmt_amount_uses_symbols_for_weights_and_plurals_otherwise():
     assert fmt_amount(1, "Pack") == "1 Pack"
     assert fmt_amount(2, "Pack") == "2 Packs"
     assert fmt_amount(3, "") == "3"
+
+
+def test_everything_is_food_when_unconfigured(fake_grocy, monkeypatch):
+    """The default has to suit an instance that only holds a pantry."""
+    monkeypatch.setattr(config_module, "_config", PantryConfig())
+    items, _ = load_items()
+    assert items and all(i["food"] for i in items)
+
+
+def test_food_categories_splits_the_catalog(fake_grocy, monkeypatch):
+    monkeypatch.setattr(config_module, "_config", PantryConfig(
+        food_categories=["Spices & Herbs"],
+    ))
+    items, _ = load_items()
+    by_name = {i["name"]: i for i in items}
+    assert by_name["Turmeric Powder"]["food"] is True
+    # "Snacks" is a real group but is not listed, so it is not food.
+    assert by_name["Long-grain Rice"]["food"] is False
+
+
+def test_uncategorized_counts_as_non_food(monkeypatch):
+    """The safe direction: hiding a drill beats surfacing it in 'going off'."""
+    monkeypatch.setattr(config_module, "_config", PantryConfig(
+        food_categories=["Spices & Herbs"],
+    ))
+    assert is_food(UNCATEGORIZED) is False
+    assert is_food("Spices & Herbs") is True
