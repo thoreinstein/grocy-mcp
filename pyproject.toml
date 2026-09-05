@@ -18,7 +18,11 @@ classifiers = [
     "Topic :: Home Automation",
 ]
 dependencies = [
-    "mcp>=1.9",
+    # Upper bound is load-bearing, not caution: mcp 2.x renamed FastMCP to
+    # MCPServer, so an unbounded requirement means a fresh install resolves to
+    # 2.x and the server fails to import before it serves anything. Migrating
+    # to the 2.x API is the real fix; until then this keeps installs working.
+    "mcp>=1.9,<2",
 ]
 
 [project.optional-dependencies]
