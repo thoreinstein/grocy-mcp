@@ -16,6 +16,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from . import notify
+
 DEFAULT_URL = "https://localhost/api"
 TIMEOUT = 30
 
@@ -122,19 +124,25 @@ def get(path, tries=3):
 def post(path, body):
     # Deliberately no retry: stock transactions are not idempotent, and a retry
     # after a timeout that actually succeeded would double-book.
-    return client().call(path, body=body, tries=1)
+    out = client().call(path, body=body, tries=1)
+    notify.changed(path)
+    return out
 
 
 def put(path, body):
     # Same reasoning as post. A PUT to /objects/<entity>/<id> is idempotent in
     # principle, but /stock/entry/<id> rewrites an amount, so a blind retry
     # after a timeout that may have succeeded is not safe in general.
-    return client().call(path, body=body, tries=1, method="PUT")
+    out = client().call(path, body=body, tries=1, method="PUT")
+    notify.changed(path)
+    return out
 
 
 def delete(path):
     # Same reasoning as post.
-    return client().call(path, tries=1, method="DELETE")
+    out = client().call(path, tries=1, method="DELETE")
+    notify.changed(path)
+    return out
 
 
 def query(path, filters=None, order=None, limit=None):

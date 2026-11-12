@@ -145,6 +145,15 @@ it with `GROCY_MCP_CONFIG=/path/to/pantry.toml` or `--config`.
 With no config file the server still works — it just describes your instance
 without opinions about it.
 
+### Announcing changes (optional)
+
+If something else caches your pantry (a recipe app, a dashboard), the package can tell
+it when stock changes: set `GROCY_MCP_NATS_URL` (e.g. `nats://127.0.0.1:4222`) and every
+write through it, except the shopping list, publishes an empty message on
+`GROCY_MCP_NATS_SUBJECT` (default `pantry.changed`) on that [NATS](https://nats.io)
+server, at most once a second. `GROCY_MCP_NATS_USER` and `GROCY_MCP_NATS_PASSWORD_FILE`
+log in if the server needs it. Standard library only; off when unset.
+
 ## Serving over HTTP
 
 For a remote client (e.g. a Claude custom connector) rather than a local one.
