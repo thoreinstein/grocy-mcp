@@ -48,6 +48,9 @@ class FakeGrocy:
         self.shopping_lists = [{"id": 1, "name": "Shopping list"}]
         self.shopping_list = []
         self.writes = []          # (method, path, body)
+        self.userentities = [{"id": 1, "name": "sync_log"}]
+        self.userobjects = []     # {id, userentity_id}
+        self.userfield_values = {}  # object id -> {name: value}
         self.responses = {}       # path -> canned response
 
     # --- fixture data ---------------------------------------------------
@@ -128,6 +131,15 @@ class FakeGrocy:
         }
         if path in simple:
             return simple[path]
+        if path == "/objects/userentities":
+            return self.userentities
+        if path == "/objects/userobjects":
+            return self.userobjects
+        if path.startswith("/userfields/userentity-sync_log/"):
+            oid = int(path.rsplit("/", 1)[1])
+            names = ("event_date", "external_id", "processed", "type")
+            vals = self.userfield_values.get(oid, {})
+            return {n: vals.get(n) for n in names}
         if path.startswith("/objects/products/"):
             pid = int(path.rsplit("/", 1)[1])
             return next((p for p in self.products if p["id"] == pid), None)
@@ -182,6 +194,10 @@ class FakeGrocy:
             new_id = max(r["id"] for r in rows) + 1
             rows.append({"id": new_id, **body})
             return {"created_object_id": new_id}
+        elif path == "/objects/userobjects":
+            new_id = max((o["id"] for o in self.userobjects), default=0) + 1
+            self.userobjects.append({"id": new_id, **body})
+            return {"created_object_id": new_id}
         elif path == "/stock/shoppinglist/add-product":
             self.shopping_list.append({
                 "id": len(self.shopping_list) + 1,
@@ -203,6 +219,10 @@ class FakeGrocy:
         return [{"transaction_id": "txn-test", "id": 1}]
 
     def _put(self, path, body):
+        if path.startswith("/userfields/userentity-sync_log/"):
+            oid = int(path.rsplit("/", 1)[1])
+            self.userfield_values.setdefault(oid, {}).update(body)
+            return None
         if path.startswith("/objects/products/"):
             pid = int(path.rsplit("/", 1)[1])
             product = next(p for p in self.products if p["id"] == pid)
@@ -214,6 +234,11 @@ class FakeGrocy:
         return None
 
     def _delete(self, path, _body):
+        if path.startswith("/objects/userobjects/"):
+            oid = int(path.rsplit("/", 1)[1])
+            self.userobjects = [o for o in self.userobjects if o["id"] != oid]
+            self.userfield_values.pop(oid, None)
+            return None
         if path.startswith("/objects/products/"):
             pid = int(path.rsplit("/", 1)[1])
             self.products = [p for p in self.products if p["id"] != pid]

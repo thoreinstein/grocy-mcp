@@ -20,6 +20,8 @@ EXPECTED_TOOLS = {
     "clear_shopping_list",
     # organizers
     "create_location", "create_quantity_unit", "create_category",
+    # sync ledger
+    "sync_log_check", "sync_log_add",
 }
 
 

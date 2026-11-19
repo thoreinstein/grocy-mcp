@@ -83,6 +83,13 @@ add this to `claude_desktop_config.json`:
 **Organizers** — `create_location`, `create_quantity_unit`, `create_category`
 (a fresh Grocy has no categories, and `create_product` needs one)
 
+**Sync ledger** — `sync_log_check`, `sync_log_add`: what a sync job has
+already processed, kept in a Grocy user entity `sync_log` (user fields `type`,
+`external_id`, `event_date`, `processed`) so it never shows in stock views.
+Create the entity and fields in Grocy first. Deleting a row through Grocy's
+API leaves its field values behind in `userfield_values`; IDs are never
+reused, so they don't attach to new rows.
+
 **Shopping list** — `list_shopping_list`, `add_to_shopping_list`,
 `remove_from_shopping_list`, `check_off_shopping_item`,
 `add_missing_to_shopping_list`, `clear_shopping_list`
