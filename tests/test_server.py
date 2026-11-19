@@ -18,6 +18,8 @@ EXPECTED_TOOLS = {
     "list_shopping_list", "add_to_shopping_list", "remove_from_shopping_list",
     "check_off_shopping_item", "add_missing_to_shopping_list",
     "clear_shopping_list",
+    # organizers
+    "create_location", "create_quantity_unit", "create_category",
 }
 
 

@@ -12,7 +12,7 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
-from .tools import products, shopping, stock
+from .tools import organizers, products, shopping, stock
 
 INSTRUCTIONS = """\
 Live kitchen inventory backed by Grocy.
@@ -42,6 +42,7 @@ def register_all(mcp: FastMCP) -> FastMCP:
     stock.register(mcp)
     products.register(mcp)
     shopping.register(mcp)
+    organizers.register(mcp)
     return mcp
 
 

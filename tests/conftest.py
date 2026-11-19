@@ -174,6 +174,14 @@ class FakeGrocy:
                 body.get("description", ""),
             ), "min_stock_amount": body.get("min_stock_amount", 0)})
             return {"created_object_id": new_id}
+        elif path in ("/objects/locations", "/objects/quantity_units",
+                      "/objects/product_groups"):
+            rows = {"/objects/locations": self.locations,
+                    "/objects/quantity_units": self.units,
+                    "/objects/product_groups": self.groups}[path]
+            new_id = max(r["id"] for r in rows) + 1
+            rows.append({"id": new_id, **body})
+            return {"created_object_id": new_id}
         elif path == "/stock/shoppinglist/add-product":
             self.shopping_list.append({
                 "id": len(self.shopping_list) + 1,

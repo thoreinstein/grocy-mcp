@@ -80,6 +80,9 @@ add this to `claude_desktop_config.json`:
 **Catalog** — `search_products`, `get_conventions`, `create_product`,
 `update_product`, `delete_product`, `add_barcode`, `remove_barcode`
 
+**Organizers** — `create_location`, `create_quantity_unit`, `create_category`
+(a fresh Grocy has no categories, and `create_product` needs one)
+
 **Shopping list** — `list_shopping_list`, `add_to_shopping_list`,
 `remove_from_shopping_list`, `check_off_shopping_item`,
 `add_missing_to_shopping_list`, `clear_shopping_list`
